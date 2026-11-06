@@ -353,6 +353,32 @@
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
       /* El fondo no se oculta: la preferencia solo suaviza las transiciones de texto. */
     }
+  
+    /* VNGRD mejoras del encabezado flotante y bolsa */
+    .site-header.is-floating .search-wrap { border-radius: 999px; overflow: hidden; }
+    .site-header.is-floating .search-wrap input { border-radius: 999px 0 0 999px; }
+    .site-header.is-floating .search-submit { border-radius: 0 999px 999px 0; }
+    .cart-line-controls { gap: 4px; }
+    .cart-line-controls .cart-utility-button { min-width: 23px; min-height: 23px; padding: 0 4px; font-size: 12px; line-height: 1; }
+    .cart-line-controls .cart-quantity { min-width: 16px; font-size: 11px; }
+    .cart-line.vn-new-item { position: relative; border-radius: 7px; animation: vn-cart-rgb 1.5s ease-out both; }
+    @keyframes vn-cart-rgb {
+      0%, 80% { box-shadow: 0 0 0 1px #00b0ff, 0 0 12px rgba(0,176,255,.35); }
+      25% { box-shadow: 0 0 0 1px #ad36ff, 0 0 14px rgba(173,54,255,.45); }
+      50% { box-shadow: 0 0 0 1px #ff1744, 0 0 14px rgba(255,23,68,.4); }
+      70% { box-shadow: 0 0 0 1px #00e676, 0 0 12px rgba(0,230,118,.35); }
+      100% { box-shadow: 0 0 0 1px transparent, 0 0 0 transparent; }
+    }
+    .site-header.header-returning:not(.is-floating) .nav-shell::after {
+      content: ""; position: absolute; inset: 0; border: 2px solid transparent; border-radius: inherit;
+      pointer-events: none; background: linear-gradient(90deg,#00b0ff,#b02aff,#ff1744,#00e676,#00b0ff) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      background-size: 250% 100%; animation: vn-header-rgb 1.5s linear both;
+    }
+    @keyframes vn-header-rgb { 0% { opacity: 0; background-position: 100% 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; background-position: 0 0; } }
+    @media (prefers-reduced-motion: reduce) { .cart-line.vn-new-item, .site-header.header-returning:not(.is-floating) .nav-shell::after { animation: none !important; } }
+
   </style>
 </head>
 <body>
@@ -695,6 +721,7 @@
     let activeFilter = "Todos";
     let shoppingCart = [];
     let toastTimer;
+    let vnLastAddedProduct = null;
     let recentSearches = [];
     let hasNavigatedToProducts = false;
     let izipayScriptPromise;
@@ -773,6 +800,7 @@
 
         const line = document.createElement("article");
         line.className = "cart-line";
+        if (item.name === vnLastAddedProduct) line.classList.add("vn-new-item");
 
         const thumbnail = document.createElement("div");
         thumbnail.className = "cart-thumbnail";
@@ -939,7 +967,12 @@
       if (existingItem) existingItem.quantity += 1;
       else shoppingCart.push({ name, quantity: 1 });
       saveCart();
+      vnLastAddedProduct = name;
+      showCartContents();
+      cartPanel.hidden = false;
+      cartButton.setAttribute("aria-expanded", "true");
       renderCart();
+      vnLastAddedProduct = null;
       toast.textContent = `${name} se añadió a tu bolsa.`;
       toast.classList.add("visible");
       clearTimeout(toastTimer);
