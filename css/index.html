@@ -379,6 +379,46 @@
     @keyframes vn-header-rgb { 0% { opacity: 0; background-position: 100% 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; background-position: 0 0; } }
     @media (prefers-reduced-motion: reduce) { .cart-line.vn-new-item, .site-header.header-returning:not(.is-floating) .nav-shell::after { animation: none !important; } }
 
+  
+    /* Ajustes de detalle: buscador píldora, luz solo en letras y contorno viajero del producto */
+    .search-wrap { border-radius: 999px; }
+    .search-wrap input { border-radius: 999px 0 0 999px; }
+    .search-submit { border-radius: 0 999px 999px 0; }
+    .site-header.header-returning:not(.is-floating) .nav-shell::after { content: none !important; animation: none !important; }
+    .wordmark { position: relative; }
+    .site-header.header-returning:not(.is-floating) .wordmark::after {
+      content: attr(data-glow); position: absolute; inset: 0; pointer-events: none;
+      color: transparent; -webkit-text-fill-color: transparent; -webkit-text-stroke: .8px transparent;
+      background: linear-gradient(100deg, #00b0ff, #a12aff, #ff1744, #00e676, #00b0ff);
+      background-size: 350% 100%; -webkit-background-clip: text; background-clip: text;
+      animation: vn-letter-trace 1.7s ease-out both;
+    }
+    @keyframes vn-letter-trace {
+      0% { opacity: 0; background-position: 100% 0; clip-path: inset(0 100% 0 0); }
+      15% { opacity: 1; }
+      75% { opacity: 1; }
+      100% { opacity: 0; background-position: 0 0; clip-path: inset(0 0 0 0); }
+    }
+    .cart-line.vn-new-item { box-shadow: none !important; animation: none !important; }
+    .cart-line.vn-new-item::after {
+      content: ""; position: absolute; inset: 0; border: 2px solid transparent;
+      border-radius: 7px; pointer-events: none;
+      background: conic-gradient(from var(--rgb-angle), transparent 0deg, transparent 265deg, #00b0ff 292deg, #a12aff 312deg, #ff1744 334deg, #00e676 351deg, transparent 360deg) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      animation: vn-item-trace 1.5s linear both;
+    }
+    @keyframes vn-item-trace {
+      0% { opacity: 0; transform: rotate(0deg); }
+      12% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; transform: rotate(360deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .site-header.header-returning:not(.is-floating) .wordmark::after,
+      .cart-line.vn-new-item::after { animation: none !important; opacity: 0 !important; }
+    }
+
   </style>
 </head>
 <body>
@@ -394,7 +434,7 @@
   <header class="site-header">
     <div class="nav-shell">
       <!-- #marca -->
-      <a class="wordmark" href="#inicio" data-view="home" aria-label="THE FIRST VANGUARD, inicio">THE FIRST VANGUARD</a>
+      <a class="wordmark" data-glow="THE FIRST VANGUARD" href="#inicio" data-view="home" aria-label="THE FIRST VANGUARD, inicio">THE FIRST VANGUARD</a>
       <!-- #menu-principal -->
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#inicio" data-view="home">Inicio</a>
