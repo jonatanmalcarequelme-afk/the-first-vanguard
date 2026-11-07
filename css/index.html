@@ -51,14 +51,36 @@
       mask-size: 300% 100%;
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
-      animation: vanguard-wordmark-return 3.5s cubic-bezier(.24, .54, .22, 1) both;
+      animation: vanguard-wordmark-return 2.9s cubic-bezier(.24, .54, .22, 1) both, vanguard-wordmark-rgb 2.9s linear both;
     }
     @keyframes vanguard-wordmark-return {
       0%   { opacity: 0; transform: translateX(-26px); -webkit-mask-position: 100% 0; mask-position: 100% 0; }
       14%  { opacity: 1; }
       100% { opacity: 1; transform: translateX(0); -webkit-mask-position: 0% 0; mask-position: 0% 0; }
     }
-    .wordmark span { color: #fff; }
+    /* RGB únicamente en el relleno de las letras, sin halo exterior. */
+    @keyframes vanguard-wordmark-rgb {
+      0%   { color: transparent; background-position: 100% 50%; }
+      75%  { color: transparent; background-position: 20% 50%; }
+      99%  { color: transparent; background-position: 0% 50%; }
+      100% { color: #fff; -webkit-text-fill-color: #fff; background-position: 0% 50%; }
+    }
+    .site-header.header-returning:not(.is-floating) .wordmark {
+      background-image: linear-gradient(90deg, #ff003c 0%, #ff5900 13%, #fff000 27%, #00ff50 41%, #00d9ff 56%, #2d36ff 70%, #e000ff 85%, #ff003c 100%);
+      background-size: 190% 100%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: none;
+    }
+    .site-header.header-returning:not(.is-floating) .wordmark {
+      animation: vanguard-wordmark-return 2.9s cubic-bezier(.24, .54, .22, 1) both,
+                 vanguard-wordmark-rgb 2.9s linear both;
+    }
+    .site-header.header-returning:not(.is-floating) .wordmark {
+      /* Tras la animación, vuelve al blanco original. */
+      animation-fill-mode: both;
+    }
     .main-nav { display: flex; gap: 30px; align-items: center; font-size: 13px; }
     .main-nav a:hover, .main-nav a.active, .text-link:hover { color: #fff; }
     .header-actions { display: flex; align-items: center; gap: 18px; }
@@ -354,72 +376,136 @@
       /* El fondo no se oculta: la preferencia solo suaviza las transiciones de texto. */
     }
   
-    /* VNGRD mejoras del encabezado flotante y bolsa */
-    .site-header.is-floating .search-wrap { border-radius: 999px; overflow: hidden; }
-    .site-header.is-floating .search-wrap input { border-radius: 999px 0 0 999px; }
-    .site-header.is-floating .search-submit { border-radius: 0 999px 999px 0; }
-    .cart-line-controls { gap: 4px; }
-    .cart-line-controls .cart-utility-button { min-width: 23px; min-height: 23px; padding: 0 4px; font-size: 12px; line-height: 1; }
-    .cart-line-controls .cart-quantity { min-width: 16px; font-size: 11px; }
-    .cart-line.vn-new-item { position: relative; border-radius: 7px; animation: vn-cart-rgb 1.5s ease-out both; }
-    @keyframes vn-cart-rgb {
-      0%, 80% { box-shadow: 0 0 0 1px #00b0ff, 0 0 12px rgba(0,176,255,.35); }
-      25% { box-shadow: 0 0 0 1px #ad36ff, 0 0 14px rgba(173,54,255,.45); }
-      50% { box-shadow: 0 0 0 1px #ff1744, 0 0 14px rgba(255,23,68,.4); }
-      70% { box-shadow: 0 0 0 1px #00e676, 0 0 12px rgba(0,230,118,.35); }
-      100% { box-shadow: 0 0 0 1px transparent, 0 0 0 transparent; }
-    }
-    .site-header.header-returning:not(.is-floating) .nav-shell::after {
-      content: ""; position: absolute; inset: 0; border: 2px solid transparent; border-radius: inherit;
-      pointer-events: none; background: linear-gradient(90deg,#00b0ff,#b02aff,#ff1744,#00e676,#00b0ff) border-box;
-      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor; mask-composite: exclude;
-      background-size: 250% 100%; animation: vn-header-rgb 1.5s linear both;
-    }
-    @keyframes vn-header-rgb { 0% { opacity: 0; background-position: 100% 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; background-position: 0 0; } }
-    @media (prefers-reduced-motion: reduce) { .cart-line.vn-new-item, .site-header.header-returning:not(.is-floating) .nav-shell::after { animation: none !important; } }
+    /* Vista de prueba V6: animaciones exclusivamente en el borde exterior. */
+    .cart-line {position:relative; isolation:isolate; border-radius:8px;}
+    .cart-line-new {animation:cart-arrive 1.15s cubic-bezier(.16,.85,.2,1) both;}
+    .cart-line-new::before {content:"";position:absolute;inset:-2px;border-radius:9px;padding:2px;pointer-events:none;
+      background:conic-gradient(from var(--cart-angle,0deg),#ff294b,#ffdf39,#39ffb0,#22aaff,#b63cff,#ff294b);
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;mask-composite:exclude;
+      animation:cart-outline-spin 3.2s linear 1 both;}
+    @property --cart-angle {syntax:"<angle>";initial-value:0deg;inherits:false;}
+    @keyframes cart-outline-spin {from{--cart-angle:0deg;opacity:1}to{--cart-angle:1080deg;opacity:0}}
+    @keyframes cart-arrive {from{transform:translateX(22px);opacity:0}to{transform:translateX(0);opacity:1}}
+    .cart-rgb-pulse {animation:cart-icon-rgb 3s linear 1;}
+    @keyframes cart-icon-rgb {0%,100%{color:inherit;text-shadow:none}15%{color:#ff4578;text-shadow:0 0 8px #ff4578}40%{color:#44cfff;text-shadow:0 0 8px #44cfff}65%{color:#67ffba;text-shadow:0 0 8px #67ffba}85%{color:#bf76ff;text-shadow:0 0 8px #bf76ff}}
+    .cart-line-controls .cart-quantity-button {min-width:24px;min-height:24px;padding:0 4px;font-size:13px;border-radius:5px;}
+    .cart-control-pulse {animation:cart-control-rgb .65s ease-out 1!important;}
+    @keyframes cart-control-rgb {0%{border-color:#ff4278;box-shadow:0 0 5px #ff4278}45%{border-color:#42cfff;box-shadow:0 0 7px #42cfff}100%{border-color:#444;box-shadow:none}}
 
-  
-    /* Ajustes de detalle: buscador píldora, luz solo en letras y contorno viajero del producto */
-    .search-wrap { border-radius: 999px; }
-    .search-wrap input { border-radius: 999px 0 0 999px; }
-    .search-submit { border-radius: 0 999px 999px 0; }
-    .site-header.header-returning:not(.is-floating) .nav-shell::after { content: none !important; animation: none !important; }
-    .wordmark { position: relative; }
-    .site-header.header-returning:not(.is-floating) .wordmark::after {
-      content: attr(data-glow); position: absolute; inset: 0; pointer-events: none;
-      color: transparent; -webkit-text-fill-color: transparent; -webkit-text-stroke: .8px transparent;
-      background: linear-gradient(100deg, #00b0ff, #a12aff, #ff1744, #00e676, #00b0ff);
-      background-size: 350% 100%; -webkit-background-clip: text; background-clip: text;
-      animation: vn-letter-trace 1.7s ease-out both;
+    /* V7: el borde RGB acompaña el desplazamiento de entrada. */
+    .cart-line-new::before {animation:cart-outline-spin 3.2s linear 1 both;}
+    .cart-remove-button, .cart-remove-button:hover, .cart-remove-button:focus-visible {
+      position:relative; display:inline-block; padding:7px 10px; margin-top:9px;
+      border:1px solid #555; border-radius:4px; background:#000; color:#fff;
+      text-decoration:none; font-size:10px; cursor:pointer; transition:transform .2s ease;
     }
-    @keyframes vn-letter-trace {
-      0% { opacity: 0; background-position: 100% 0; clip-path: inset(0 100% 0 0); }
-      15% { opacity: 1; }
-      75% { opacity: 1; }
-      100% { opacity: 0; background-position: 0 0; clip-path: inset(0 0 0 0); }
+    .cart-remove-button:hover, .cart-remove-button:focus-visible {
+      border:1px solid transparent;
+      background:linear-gradient(#000,#000) padding-box,
+        conic-gradient(from var(--rgb-angle),#ff1744,#ffea00,#00e676,#00b0ff,#f500c8,#ff1744) border-box;
+      animation:rgb-border-rotate 2.4s linear infinite;
     }
-    .cart-line.vn-new-item { box-shadow: none !important; animation: none !important; }
-    .cart-line.vn-new-item::after {
-      content: ""; position: absolute; inset: 0; border: 2px solid transparent;
-      border-radius: 7px; pointer-events: none;
-      background: conic-gradient(from var(--rgb-angle), transparent 0deg, transparent 265deg, #00b0ff 292deg, #a12aff 312deg, #ff1744 334deg, #00e676 351deg, transparent 360deg) border-box;
-      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor; mask-composite: exclude;
-      animation: vn-item-trace 1.5s linear both;
+    .newsletter-home {margin-top:0;}
+    @media(prefers-reduced-motion:reduce){.cart-line-new,.cart-line-new::before{animation:none}}
+
+    /* V11: bolsa estable, deslizamiento lento y detalles RGB */
+    .cart-panel {
+      display:grid; visibility:hidden; opacity:0; pointer-events:none;
+      transform:translateX(55px);
+      transition:transform 850ms cubic-bezier(.16,1,.3,1), opacity 650ms ease, visibility 0s linear 850ms;
+      box-shadow:0 18px 50px #0009;
     }
-    @keyframes vn-item-trace {
-      0% { opacity: 0; transform: rotate(0deg); }
-      12% { opacity: 1; }
-      85% { opacity: 1; }
-      100% { opacity: 0; transform: rotate(360deg); }
+    .cart-panel[hidden] { display:grid; }
+    .cart-panel.cart-is-open {
+      visibility:visible; opacity:1; pointer-events:auto; transform:translateX(0);
+      transition:transform 850ms cubic-bezier(.16,1,.3,1), opacity 650ms ease, visibility 0s;
+      animation:cart-rgb-edge 8s linear infinite;
     }
-    @media (prefers-reduced-motion: reduce) {
-      .site-header.header-returning:not(.is-floating) .wordmark::after,
-      .cart-line.vn-new-item::after { animation: none !important; opacity: 0 !important; }
+    @keyframes cart-rgb-edge {
+      0%,100% { border-color:#ff4d87; }
+      33% { border-color:#6c8dff; }
+      66% { border-color:#4df3d0; }
+    }
+    .cart-quantity-button {
+      width:26px; height:26px; min-width:26px; min-height:26px;
+      padding:0; border-radius:5px; font-size:16px; line-height:1;
+      transition:background .25s, box-shadow .3s, transform .25s;
+    }
+    .cart-quantity-button:hover, .cart-quantity-button:focus-visible {
+      background:#161616; box-shadow:0 0 0 1px #6c8dff,0 0 12px #6c8dff88;
+    }
+    .cart-control-pulse { animation:cart-control-flash .65s ease-out; }
+    @keyframes cart-control-flash {
+      0% { box-shadow:0 0 0 2px #ff4d87,0 0 18px #ff4d87; transform:scale(1.12); }
+      60% { box-shadow:0 0 0 2px #4df3d0,0 0 12px #4df3d0; }
+      100% { box-shadow:none; transform:scale(1); }
+    }
+    .cart-remove-button {
+      display:inline-block; background:#050505; border:1px solid #343434;
+      padding:6px 9px; border-radius:4px; color:#f4f4f4;
+      text-decoration:none; transition:border-color .3s,box-shadow .3s;
+    }
+    .cart-remove-button:hover, .cart-remove-button:focus-visible {
+      color:white; border-color:#ff4d87; box-shadow:0 0 9px #ff4d8777,0 0 14px #6c8dff55;
+    }
+    .cart-button.cart-added-flash { animation:cart-bag-flash 950ms ease-out; }
+    @keyframes cart-bag-flash {
+      0%,100% { filter:none; }
+      30% { color:#ff6fbd; filter:drop-shadow(0 0 9px #ff4d87); }
+      65% { color:#65f6e0; filter:drop-shadow(0 0 9px #4df3d0); }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .cart-panel,.cart-panel.cart-is-open { transition:none; animation:none; }
+      .cart-control-pulse,.cart-button.cart-added-flash { animation:none; }
+    }
+
+    /* V14: el buscador adopta la silueta redondeada del encabezado flotante. */
+    .site-header.is-floating .search-wrap {
+      border-radius: 999px;
+      transition: border-radius .35s ease;
+    }
+    .site-header.is-floating .search-wrap input {
+      border-radius: 999px 0 0 999px;
+    }
+    .site-header.is-floating .search-submit {
+      border-radius: 0 999px 999px 0;
     }
 
   </style>
+
+<style id="v12-confirm-styles">
+  .cart-confirm-overlay {position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.73);display:grid;place-items:center;padding:22px;}
+  .cart-confirm-overlay[hidden] {display:none!important;}
+  .cart-confirm-dialog {width:min(100%,420px);padding:28px 24px;background:#0b0b0d;color:white;border:1px solid #777;border-radius:14px;box-shadow:0 20px 80px #000c;position:relative;text-align:center;}
+  .cart-confirm-dialog:before {content:"";position:absolute;inset:-2px;border-radius:16px;padding:2px;background:linear-gradient(115deg,#ff355e,#ffcb37,#36e4ba,#4a8dff,#c94bff,#ff355e);background-size:250% 250%;animation:cart-confirm-rgb 5s linear infinite;z-index:-1;}
+  @keyframes cart-confirm-rgb {to{background-position:250% 0}}
+  .cart-confirm-dialog h2 {font-size:20px;line-height:1.4;margin:0 0 12px;color:#fff;}
+  .cart-confirm-dialog p {font-size:14px;opacity:.75;margin:0 0 24px;}
+  .cart-confirm-actions {display:flex;gap:12px;justify-content:center;}
+  .cart-confirm-actions button {cursor:pointer;border-radius:7px;padding:12px 18px;font-weight:600;font-size:13px;}
+  #cart-confirm-cancel {background:#242428;color:white;border:1px solid #666;}
+  #cart-confirm-accept {background:white;color:black;border:1px solid white;}
+  .cart-line.cart-line-removing {animation:v12-remove .26s ease-in forwards;overflow:hidden;}
+  @keyframes v12-remove {to{opacity:0;transform:translateX(35px);max-height:0;margin:0;padding:0}}
+  @media (prefers-reduced-motion:reduce){.cart-line.cart-line-removing{animation:none}}
+</style>
+
+<style id="v13-cart-minimal-style">
+  /* Contorno de la bolsa discreto y sin animación RGB. */
+  .cart-panel.cart-is-open {animation:none;border-color:#444;}
+  /* Continuar al pago: negro en reposo; RGB solo al pasar el cursor. */
+  #cart-start-checkout {position:relative;border:1px solid #555;background:#0b0b0b;color:#fff;box-shadow:none;animation:none;transform:none;transition:border-color .25s ease,box-shadow .25s ease,background .25s ease;}
+  #cart-start-checkout:not(:disabled):hover,
+  #cart-start-checkout:not(:disabled):focus-visible {
+    border:1px solid transparent;
+    background:linear-gradient(#101010,#101010) padding-box,conic-gradient(from var(--rgb-angle),#ff1744,#ff9100,#ffea00,#00e676,#00b0ff,#651fff,#f500c8,#ff1744) border-box;
+    box-shadow:0 0 13px rgba(70,160,255,.35),0 0 22px rgba(240,40,160,.2);
+    animation:rgb-border-rotate 5s linear infinite;transform:none;
+  }
+  #cart-start-checkout:disabled {opacity:.45;cursor:not-allowed;animation:none;box-shadow:none;}
+  @media(prefers-reduced-motion:reduce){#cart-start-checkout:not(:disabled):hover,#cart-start-checkout:not(:disabled):focus-visible{animation:none;border-color:#8c7dff;}}
+</style>
 </head>
 <body>
   <!-- #fondo-de-video-fijo -->
@@ -434,7 +520,7 @@
   <header class="site-header">
     <div class="nav-shell">
       <!-- #marca -->
-      <a class="wordmark" data-glow="THE FIRST VANGUARD" href="#inicio" data-view="home" aria-label="THE FIRST VANGUARD, inicio">THE FIRST VANGUARD</a>
+      <a class="wordmark" href="#inicio" data-view="home" aria-label="THE FIRST VANGUARD, inicio">THE FIRST VANGUARD</a>
       <!-- #menu-principal -->
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#inicio" data-view="home">Inicio</a>
@@ -478,7 +564,7 @@
             <footer class="cart-panel-footer">
               <div class="cart-subtotal"><span>Subtotal</span><strong id="cart-subtotal">$0.00</strong></div>
               <div class="cart-panel-footer-actions">
-                <button class="cart-clear-button" id="cart-clear" type="button">Vaciar bolsa</button>
+                
                 <button class="cart-checkout-button" id="cart-start-checkout" type="button" disabled>Continuar al pago</button>
               </div>
             </footer>
@@ -515,6 +601,10 @@
           <p>Este proyecto está en construcción, igual que toda historia que merece ser contada. Estamos dando forma a una marca cercana, con una voz clara y una colección que evolucione junto a quienes la eligen. Cada nueva pieza, cada idea y cada conversación será una oportunidad para definir mejor lo que queremos representar.</p>
           <p>Gracias por acercarte a este comienzo. Queremos que encuentres aquí algo más que un accesorio: una pequeña señal de confianza para seguir tu propio camino. Porque la vanguardia no es una multitud a la que seguir; es el valor de ser fiel a tu manera de avanzar.</p>
         </div>
+      </section>
+      <section class="newsletter newsletter-home" aria-labelledby="newsletter-home-title">
+        <div><h2 id="newsletter-home-title">Una nota de vez en cuando.</h2><p>Novedades, historias y un regalo de bienvenida en tu primera compra.</p></div>
+        <form class="newsletter-signup" id="newsletter-home-form"><input type="email" placeholder="Tu correo electrónico" aria-label="Tu correo electrónico" required><button type="submit">SUSCRIBIRME →</button></form>
       </section>
     </section>
 
@@ -710,7 +800,7 @@
           <h2 id="newsletter-title">Una nota de vez en cuando.</h2>
           <p>Novedades, historias y un regalo de bienvenida en tu primera compra.</p>
         </div>
-        <form id="newsletter-form">
+        <form class="newsletter-signup" id="newsletter-form">
           <input type="email" placeholder="Tu correo electrónico" aria-label="Tu correo electrónico" required>
           <button type="submit">SUSCRIBIRME →</button>
         </form>
@@ -722,6 +812,17 @@
   <!-- #notificacion -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+
+<div id="cart-confirm-overlay" class="cart-confirm-overlay" hidden>
+  <section class="cart-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="cart-confirm-title" aria-describedby="cart-confirm-description">
+    <h2 id="cart-confirm-title">¿Seguro que quieres eliminar este producto de tu bolsa?</h2>
+    <p id="cart-confirm-description"></p>
+    <div class="cart-confirm-actions">
+      <button type="button" id="cart-confirm-cancel">Cancelar</button>
+      <button type="button" id="cart-confirm-accept">Sí, eliminar</button>
+    </div>
+  </section>
+</div>
   <!-- #interacciones -->
   <script>
     const filterButtons = document.querySelectorAll(".filter-button");
@@ -761,7 +862,6 @@
     let activeFilter = "Todos";
     let shoppingCart = [];
     let toastTimer;
-    let vnLastAddedProduct = null;
     let recentSearches = [];
     let hasNavigatedToProducts = false;
     let izipayScriptPromise;
@@ -840,7 +940,7 @@
 
         const line = document.createElement("article");
         line.className = "cart-line";
-        if (item.name === vnLastAddedProduct) line.classList.add("vn-new-item");
+        if (window.cartHighlightName === item.name) line.classList.add("cart-line-new");
 
         const thumbnail = document.createElement("div");
         thumbnail.className = "cart-thumbnail";
@@ -867,13 +967,13 @@
         removeButton.type = "button";
         removeButton.dataset.cartAction = "remove";
         removeButton.dataset.product = item.name;
-        removeButton.textContent = "Quitar";
+        removeButton.textContent = "Eliminar producto";
         details.append(name, itemPrice, removeButton);
 
         const quantityControls = document.createElement("div");
         quantityControls.className = "cart-line-controls";
         const decreaseButton = document.createElement("button");
-        decreaseButton.className = "cart-utility-button";
+        decreaseButton.className = "cart-utility-button cart-quantity-button";
         decreaseButton.type = "button";
         decreaseButton.dataset.cartAction = "decrease";
         decreaseButton.dataset.product = item.name;
@@ -883,7 +983,7 @@
         quantity.className = "cart-quantity";
         quantity.textContent = String(item.quantity);
         const increaseButton = document.createElement("button");
-        increaseButton.className = "cart-utility-button";
+        increaseButton.className = "cart-utility-button cart-quantity-button";
         increaseButton.type = "button";
         increaseButton.dataset.cartAction = "increase";
         increaseButton.dataset.product = item.name;
@@ -904,7 +1004,7 @@
       cartCount.textContent = String(totalItems);
       cartButton.setAttribute("aria-label", `Bolsa, ${totalItems} ${totalItems === 1 ? "artículo" : "artículos"}`);
       cartSubtotal.textContent = formatCartPrice(subtotal);
-      document.querySelector("#cart-clear").disabled = totalItems === 0;
+      
       cartStartCheckout.disabled = totalItems === 0;
     }
 
@@ -1007,12 +1107,19 @@
       if (existingItem) existingItem.quantity += 1;
       else shoppingCart.push({ name, quantity: 1 });
       saveCart();
-      vnLastAddedProduct = name;
-      showCartContents();
-      cartPanel.hidden = false;
-      cartButton.setAttribute("aria-expanded", "true");
+      window.cartHighlightName = name;
       renderCart();
-      vnLastAddedProduct = null;
+      cartPanel.hidden = false; cartPanel.classList.add("cart-is-open");
+      cartPanel.classList.add("cart-is-open");
+      cartButton.setAttribute("aria-expanded", "true");
+      cartButton.classList.remove("cart-rgb-pulse");
+      void cartButton.offsetWidth;
+      cartButton.classList.add("cart-rgb-pulse");
+      clearTimeout(window.cartHighlightTimer);
+      window.cartHighlightTimer = setTimeout(() => {
+        window.cartHighlightName = null;
+        cartItemsElement.querySelectorAll(".cart-line-new").forEach(el => el.classList.remove("cart-line-new"));
+      }, 3200);
       toast.textContent = `${name} se añadió a tu bolsa.`;
       toast.classList.add("visible");
       clearTimeout(toastTimer);
@@ -1286,17 +1393,28 @@
     });
 
     function closeCart() {
+      cartPanel.classList.remove("cart-is-open");
       cartPanel.hidden = true;
       cartButton.setAttribute("aria-expanded", "false");
+    }
+    function openCart() {
+      cartPanel.hidden = false; cartPanel.classList.add("cart-is-open");
+      cartPanel.classList.add("cart-is-open");
+      cartButton.setAttribute("aria-expanded", "true");
+      renderCart();
+    }
+    function flashCartIcon() {
+      cartButton.classList.remove("cart-added-flash");
+      void cartButton.offsetWidth;
+      cartButton.classList.add("cart-added-flash");
+      setTimeout(() => cartButton.classList.remove("cart-added-flash"), 950);
     }
 
     renderCart();
 
     cartButton.addEventListener("click", () => {
-      const shouldOpen = cartPanel.hidden;
-      cartPanel.hidden = !shouldOpen;
-      cartButton.setAttribute("aria-expanded", String(shouldOpen));
-      if (shouldOpen) renderCart();
+      if (cartPanel.classList.contains("cart-is-open")) closeCart();
+      else openCart();
     });
 
     cartPanel.querySelector("[data-cart-close]").addEventListener("click", closeCart);
@@ -1310,15 +1428,63 @@
     document.querySelector("#cart-back-button").addEventListener("click", showCartContents);
     cartCheckoutForm.addEventListener("submit", startIzipayCheckout);
 
-    document.querySelector("#cart-clear").addEventListener("click", () => {
-      shoppingCart = [];
-      saveCart();
-      renderCart();
+
+    const confirmOverlay = document.querySelector("#cart-confirm-overlay");
+    const confirmCancel = document.querySelector("#cart-confirm-cancel");
+    const confirmAccept = document.querySelector("#cart-confirm-accept");
+    const confirmDescription = document.querySelector("#cart-confirm-description");
+    let pendingRemoval = null;
+    let previouslyFocused = null;
+    function closeRemovalConfirm() {
+      confirmOverlay.hidden = true;
+      pendingRemoval = null;
+      previouslyFocused?.focus?.();
+    }
+    function askRemovalConfirm(itemName) {
+      pendingRemoval = itemName;
+      previouslyFocused = document.activeElement;
+      confirmDescription.textContent = itemName;
+      confirmOverlay.hidden = false;
+      confirmCancel.focus();
+    }
+    confirmCancel.addEventListener("click", closeRemovalConfirm);
+    confirmOverlay.addEventListener("click", e => {
+      if (e.target === confirmOverlay) closeRemovalConfirm();
+    });
+    confirmAccept.addEventListener("click", () => {
+      const name = pendingRemoval;
+      if (!name) return;
+      const row = [...cartItemsElement.querySelectorAll(".cart-line")].find(el =>
+        el.querySelector(".cart-product-name")?.textContent === name);
+      confirmOverlay.hidden = true;
+      pendingRemoval = null;
+      row?.classList.add("cart-line-removing");
+      const finish = () => {
+        shoppingCart = shoppingCart.filter(item => item.name !== name);
+        saveCart();
+        window.cartHighlightName = null;
+        renderCart();
+        openCart();
+        cartButton.focus();
+      };
+      if (row && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) setTimeout(finish, 260);
+      else finish();
+    });
+    confirmOverlay.addEventListener("keydown", e => {
+      if (e.key === "Escape") { e.preventDefault(); closeRemovalConfirm(); }
+      if (e.key === "Tab") {
+        const target = document.activeElement === confirmCancel ? confirmAccept : confirmCancel;
+        e.preventDefault(); target.focus();
+      }
     });
 
     cartItemsElement.addEventListener("click", (event) => {
       const control = event.target.closest("[data-cart-action]");
       if (!control) return;
+      event.stopPropagation();
+      cartPanel.hidden = false; cartPanel.classList.add("cart-is-open");
+      cartPanel.classList.add("cart-is-open");
+      cartButton.setAttribute("aria-expanded", "true");
 
       const itemName = control.dataset.product;
       const item = shoppingCart.find((cartItem) => cartItem.name === itemName);
@@ -1329,34 +1495,47 @@
       } else if (control.dataset.cartAction === "increase") {
         item.quantity += 1;
       } else if (control.dataset.cartAction === "decrease") {
+        if (item.quantity === 1) { askRemovalConfirm(itemName); return; }
         item.quantity -= 1;
-        if (item.quantity <= 0) shoppingCart = shoppingCart.filter((cartItem) => cartItem.name !== itemName);
       }
 
       saveCart();
+      window.cartHighlightName = null;
       renderCart();
+      cartPanel.hidden = false; cartPanel.classList.add("cart-is-open");
+      cartPanel.classList.add("cart-is-open");
+      cartButton.setAttribute("aria-expanded", "true");
+      if (control.dataset.cartAction !== "remove") {
+        const updated = [...cartItemsElement.querySelectorAll(".cart-line")].find(el =>
+          el.querySelector(".cart-product-name")?.textContent === itemName);
+        const btn = updated?.querySelector(`[data-cart-action="${control.dataset.cartAction}"]`);
+        if (btn) {
+          btn.classList.add("cart-control-pulse");
+          setTimeout(() => btn.classList.remove("cart-control-pulse"), 650);
+        }
+      }
     });
 
     document.addEventListener("click", (event) => {
       if (!searchForm.contains(event.target)) searchHistoryPanel.hidden = true;
-      if (!cartWrap.contains(event.target)) closeCart();
+      // La bolsa solo se cierra mediante su botón o al finalizar un pago aprobado.
 
       const addButton = event.target.closest(".add-button");
-      if (addButton) addProductToCart(addButton.dataset.product);
+      if (addButton) { addProductToCart(addButton.dataset.product); flashCartIcon(); }
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeCart();
+      // Escape no cierra la bolsa accidentalmente.
     });
 
-    document.querySelector("#newsletter-form").addEventListener("submit", (event) => {
+    document.querySelectorAll(".newsletter-signup").forEach(form => form.addEventListener("submit", (event) => {
       event.preventDefault();
-      toast.textContent = "¡Listo! Ya estás en nuestra lista.";
+      toast.textContent = "Formulario de demostración: todavía no se guardan correos.";
       toast.classList.add("visible");
       event.currentTarget.reset();
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
-    });
+    }));
   </script>
   <script>
     // El video es decorativo y no necesita sonido ni interacción.
