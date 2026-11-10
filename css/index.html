@@ -542,24 +542,7 @@
             </header>
             <div class="cart-body">
               <div class="cart-items" id="cart-items"></div>
-              <form class="cart-checkout-form" id="cart-checkout-form" hidden>
-                <h3>Datos para el pago</h3>
-                <label class="cart-field">Nombre<input name="firstName" autocomplete="given-name" required></label>
-                <label class="cart-field">Apellido<input name="lastName" autocomplete="family-name" required></label>
-                <label class="cart-field cart-form-wide">Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
-                <label class="cart-field">Celular<input name="phoneNumber" type="tel" autocomplete="tel" required></label>
-                <label class="cart-field">DNI<input name="document" inputmode="numeric" required></label>
-                <label class="cart-field cart-form-wide">Dirección<input name="street" autocomplete="street-address" required></label>
-                <label class="cart-field">Ciudad<input name="city" autocomplete="address-level2" required></label>
-                <label class="cart-field">Departamento<input name="state" autocomplete="address-level1" required></label>
-                <label class="cart-field">Código postal<input name="postalCode" autocomplete="postal-code" required></label>
-                <input name="documentType" type="hidden" value="DNI">
-                <p class="cart-checkout-status" id="cart-checkout-status" role="status" aria-live="polite"></p>
-                <div class="cart-form-actions">
-                  <button class="cart-back-button" id="cart-back-button" type="button">Volver a la bolsa</button>
-                  <button class="cart-checkout-button" id="cart-checkout-button" type="submit">Pagar con Izipay</button>
-                </div>
-              </form>
+              
             </div>
             <footer class="cart-panel-footer">
               <div class="cart-subtotal"><span>Subtotal</span><strong id="cart-subtotal">$0.00</strong></div>
@@ -851,9 +834,6 @@
     const cartItemsElement = document.querySelector("#cart-items");
     const cartSubtotal = document.querySelector("#cart-subtotal");
     const cartStartCheckout = document.querySelector("#cart-start-checkout");
-    const cartCheckoutForm = document.querySelector("#cart-checkout-form");
-    const cartCheckoutButton = document.querySelector("#cart-checkout-button");
-    const cartCheckoutStatus = document.querySelector("#cart-checkout-status");
     const cartStorageKey = "the-first-vanguard-shopping-cart-v1";
     const resultCount = document.querySelector("#result-count");
     const emptyState = document.querySelector("#empty-state");
@@ -864,7 +844,6 @@
     let toastTimer;
     let recentSearches = [];
     let hasNavigatedToProducts = false;
-    let izipayScriptPromise;
     let floatingHeaderFrame = false;
 
     function updateFloatingHeader() {
@@ -1008,98 +987,6 @@
       cartStartCheckout.disabled = totalItems === 0;
     }
 
-    function loadIzipaySdk(source) {
-      if (window.Izipay) return Promise.resolve();
-      if (izipayScriptPromise) return izipayScriptPromise;
-
-      izipayScriptPromise = new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = source;
-        script.onload = resolve;
-        script.onerror = () => {
-          script.remove();
-          reject(new Error("No se pudo cargar el formulario seguro de Izipay."));
-        };
-        document.head.appendChild(script);
-      }).catch((error) => {
-        izipayScriptPromise = null;
-        throw error;
-      });
-      return izipayScriptPromise;
-    }
-
-    function showCartContents() {
-      cartItemsElement.hidden = false;
-      cartCheckoutForm.hidden = true;
-      cartCheckoutStatus.textContent = "";
-    }
-
-    async function startIzipayCheckout(event) {
-      event.preventDefault();
-      if (!cartCheckoutForm.reportValidity()) return;
-
-      cartCheckoutButton.disabled = true;
-      cartCheckoutStatus.textContent = "Preparando la sesión segura de pago…";
-
-      try {
-        const billing = Object.fromEntries(new FormData(cartCheckoutForm).entries());
-        const response = await fetch("/api/izipay/session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items: shoppingCart, billing })
-        });
-        const session = await response.json();
-        if (!response.ok) throw new Error(session.error || "No se pudo iniciar el pago.");
-
-        await loadIzipaySdk(session.sdkUrl);
-        const transactionDate = Date.now();
-        const buyerId = session.billing.document || session.billing.email;
-        const billingAddress = { ...session.billing, country: "PE" };
-        const checkout = new window.Izipay({
-          config: {
-            transactionId: session.transactionId,
-            action: "pay",
-            merchantCode: session.merchantCode,
-            order: {
-              orderNumber: session.orderNumber,
-              currency: "PEN",
-              amount: session.amount,
-              processType: "AT",
-              merchantBuyerId: buyerId,
-              dateTimeTransaction: transactionDate
-            },
-            billing: billingAddress,
-            shipping: billingAddress,
-            render: { typeForm: "pop-up" }
-          }
-        });
-
-        checkout.LoadForm({
-          authorization: session.token,
-          keyRSA: "RSA",
-          callbackResponse: (result) => {
-            if (result?.code === "00") {
-              shoppingCart = [];
-              saveCart();
-              renderCart();
-              showCartContents();
-              closeCart();
-              toast.textContent = "El pago fue aprobado.";
-              toast.classList.add("visible");
-              clearTimeout(toastTimer);
-              toastTimer = setTimeout(() => toast.classList.remove("visible"), 3000);
-            } else {
-              cartCheckoutStatus.textContent = result?.messageUser || result?.message || "El pago no fue aprobado. Puedes intentarlo de nuevo.";
-            }
-          }
-        });
-        cartCheckoutStatus.textContent = "Completa el pago en el formulario seguro de Izipay.";
-      } catch (error) {
-        cartCheckoutStatus.textContent = error.message || "No se pudo conectar con Izipay.";
-      } finally {
-        cartCheckoutButton.disabled = false;
-      }
-    }
 
     function addProductToCart(name) {
       if (!findCartProduct(name)) return;
@@ -1420,13 +1307,8 @@
     cartPanel.querySelector("[data-cart-close]").addEventListener("click", closeCart);
 
     cartStartCheckout.addEventListener("click", () => {
-      cartItemsElement.hidden = true;
-      cartCheckoutForm.hidden = false;
-      cartCheckoutStatus.textContent = "";
+      alert("El pago en Shopify estará disponible próximamente. Aún no se procesan pagos desde esta página.");
     });
-
-    document.querySelector("#cart-back-button").addEventListener("click", showCartContents);
-    cartCheckoutForm.addEventListener("submit", startIzipayCheckout);
 
 
     const confirmOverlay = document.querySelector("#cart-confirm-overlay");
